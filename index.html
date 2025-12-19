@@ -82,6 +82,8 @@
           <input id="fetchCount" type="number" min="1" value="10" />
           <div class="mini">İstediğimiz adet kadar lead alırız.</div>
         </div>
+        <label>Max Cost (USD)</label>
+        <input id="maxCost" type="number" min="0" step="0.1" placeholder="örn: 5" />
         <div>
           <label>Email Status</label>
           <input id="emailStatus" type="text" value="validated" disabled />
@@ -298,6 +300,13 @@
     const fetch = Number(document.getElementById("fetchCount").value || 0);
     if(!Number.isFinite(fetch) || fetch < 1) throw new Error("fetch_count >= 1 olmalı");
 
+    // Max Cost (USD) — opsiyonel
+  const maxCostRaw = String(document.getElementById("maxCost").value || "").trim();
+  const maxCost = maxCostRaw === "" ? null : Number(maxCostRaw);
+  if (maxCost !== null && (!Number.isFinite(maxCost) || maxCost <= 0)) {
+    throw new Error("maxCost 0'dan büyük bir sayı olmalı (veya boş bırakılmalı)");
+  }
+
     const spreadsheetId = document.getElementById("spreadsheetId").value.trim();
 const sheetName = document.getElementById("sheetName").value.trim();
 
@@ -314,7 +323,9 @@ return {
   seniority_level: state.seniority_level,
   size: state.size,
   spreadsheet_id: spreadsheetId,
-  sheet_name: sheetName
+  sheet_name: sheetName,
+  // Apify run option (n8n Prepare Run bunu alıp Run Actor URL'sine ekliyor)
+  ...(maxCost !== null ? { maxCost } : {})
 };
 
   }
@@ -456,6 +467,8 @@ async function runWorkflow(){
   // Wire events
   // =========================
   document.getElementById("fetchCount").addEventListener("input", updatePreview);
+
+  document.getElementById("maxCost").addEventListener("input", updatePreview);
 
   document.getElementById("addIndustry").addEventListener("click", () => {
     uniqPush(state.company_industry, document.getElementById("industryInput").value);
