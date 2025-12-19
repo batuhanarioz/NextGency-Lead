@@ -1,0 +1,527 @@
+<!doctype html>
+<html lang="tr">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Leads Finder – Runner - NextGency</title>
+  <style>
+    :root{
+      --bg:#0b0f14; --card:#0f1620; --muted:#9aa4b2; --text:#e6edf3;
+      --line:#223043; --chip:#152235; --chip2:#0f223d; --accent:#3b82f6;
+      --ok:#22c55e; --err:#ef4444; --warn:#f59e0b;
+    }
+    *{box-sizing:border-box}
+    body{margin:0; font-family: ui-sans-serif, system-ui, -apple-system, Segoe UI, Roboto, Arial; background:var(--bg); color:var(--text);}
+    .wrap{max-width:1100px; margin:24px auto; padding:0 16px;}
+    .top{display:flex; justify-content:space-between; align-items:center; gap:12px; flex-wrap:wrap;}
+    .title{font-size:20px; font-weight:700;}
+    .sub{color:var(--muted); font-size:13px; margin-top:4px}
+    .btn{border:1px solid var(--line); background:#0d1520; color:var(--text); padding:10px 12px; border-radius:10px; cursor:pointer;}
+    .btn.primary{background:linear-gradient(180deg,#2563eb,#1d4ed8); border-color:#1e40af;}
+    .btn:disabled{opacity:.6; cursor:not-allowed}
+    .grid{display:grid; grid-template-columns: 1.1fr .9fr; gap:14px; margin-top:14px;}
+    @media (max-width: 980px){ .grid{grid-template-columns:1fr} }
+    .card{background:var(--card); border:1px solid var(--line); border-radius:14px; padding:14px;}
+    details{background:transparent; border:1px solid var(--line); border-radius:14px; padding:10px 12px; margin-top:10px;}
+    summary{cursor:pointer; list-style:none; display:flex; justify-content:space-between; align-items:center; gap:10px;}
+    summary::-webkit-details-marker{display:none}
+    .secTitle{font-weight:650}
+    .hint{color:var(--muted); font-size:12px; margin-top:8px; line-height:1.5}
+    label{display:block; color:var(--muted); font-size:12px; margin:8px 0 6px}
+    input, select, textarea{
+      width:100%; padding:10px 12px; border-radius:10px; border:1px solid var(--line);
+      background:#0b1220; color:var(--text); outline:none;
+    }
+    textarea{min-height:220px; font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", monospace;}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px;}
+    @media (max-width: 700px){ .row{grid-template-columns:1fr} }
+    .chips{display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;}
+    .chip{
+      display:inline-flex; align-items:center; gap:8px;
+      background:var(--chip); border:1px solid var(--line); padding:6px 10px; border-radius:999px; font-size:13px;
+    }
+    .chip button{
+      border:none; background:transparent; color:var(--muted); cursor:pointer; font-size:14px; padding:0; line-height:1;
+    }
+    .tagInputRow{display:flex; gap:10px; margin-top:8px;}
+    .tagInputRow input{flex:1}
+    .tagInputRow .btn{padding:10px 12px}
+    .multiWrap{display:flex; gap:10px; margin-top:8px;}
+    .multiWrap select{flex:1}
+    .mini{font-size:12px; color:var(--muted)}
+    .status{margin-top:10px; padding:10px 12px; border-radius:12px; border:1px solid var(--line); background:#0b1220;}
+    .status.run{border-color:#274c88; background:#0c1730;}
+    .status.ok{border-color:#1f7a44; background:#0b1a12;}
+    .status.err{border-color:#7a1f1f; background:#1a0b0b;}
+    .status b{font-weight:700}
+    .kpi{display:flex; gap:14px; flex-wrap:wrap; margin-top:8px; color:var(--muted); font-size:13px;}
+    .kpi span{color:var(--text)}
+    .footer{margin-top:10px; color:var(--muted); font-size:12px; line-height:1.6}
+    .inline{display:flex; gap:10px; align-items:center; flex-wrap:wrap}
+    .pill{padding:6px 10px; border-radius:999px; border:1px solid var(--line); background:var(--chip2); font-size:12px;}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="top">
+    <div>
+      <div class="title">Leads Finder – Runner</div>
+      <div class="sub">Exclude yok. Email her zaman validated. JSON preview birebir actor input üretir.</div>
+    </div>
+    <div class="inline">
+      <button id="runBtn" class="btn primary">Save & Start</button>
+      <button id="copyBtn" class="btn">JSON Kopyala</button>
+    </div>
+  </div>
+
+  <div class="grid">
+    <div class="card">
+      <div class="row">
+        <div>
+          <label>Fetch Count</label>
+          <input id="fetchCount" type="number" min="1" value="10" />
+          <div class="mini">İstediğimiz adet kadar lead alırız.</div>
+        </div>
+        <div>
+          <label>Email Status</label>
+          <input id="emailStatus" type="text" value="validated" disabled />
+          <div class="mini">array (sabit: ["validated"])</div>
+        </div>
+        <div class="row">
+            <div>
+              <label>Spreadsheet ID</label>
+              <input id="spreadsheetId" type="text" placeholder="1abc...xyz" />
+              <div class="mini">Dolduracağımız sheets url'sinden alınan id: spreadsheets/d/.../ <br/> Sheets ilk satırı gerekli şekilde dolu olmalı ve geri kalanı boş olmalıdır.</div>
+            </div>
+            <div>
+              <label>Sheet Name</label>
+              <input id="sheetName" type="text" placeholder="Sayfa1" />
+              <div class="mini">Dolduracağımız sheets sayfası adı: Sayfa1</div>
+            </div>
+          </div>          
+      </div>
+
+      <details open>
+        <summary>
+          <span class="secTitle">Industry</span>
+          <span class="pill">company_industry (array)</span>
+        </summary>
+        <div class="hint">Apify’deki gibi “include any” mantığı: birden fazla etiket ekleyebilirsin (Virgül ile ayırın)</div>
+        <div class="tagInputRow">
+          <input id="industryInput" placeholder="örn: cosmetics" />
+          <button class="btn" id="addIndustry">+ Add</button>
+        </div>
+        <div id="industryChips" class="chips"></div>
+      </details>
+
+      <details open>
+        <summary>
+          <span class="secTitle">Keywords</span>
+          <span class="pill">company_keywords (array)</span>
+        </summary>
+        <div class="hint">Her eklenen değer ayrı array item’dır. (İstersen tek item içinde virgüllü de tutabilirsin.)</div>
+        <div class="tagInputRow">
+          <input id="keywordInput" placeholder="örn: cosmetic" />
+          <button class="btn" id="addKeyword">+ Add</button>
+        </div>
+        <div id="keywordChips" class="chips"></div>
+      </details>
+
+      <details open>
+        <summary>
+          <span class="secTitle">Location (Include)</span>
+          <span class="pill">contact_location (array)</span>
+        </summary>
+        <div class="hint">Region/Country/State benzeri serbest giriş. Küçük harflerle yazınız.</div>
+        <div class="tagInputRow">
+          <input id="locationInput" placeholder="örn: turkey" />
+          <button class="btn" id="addLocation">+ Add</button>
+        </div>
+        <div id="locationChips" class="chips"></div>
+      </details>
+
+      <details>
+        <summary>
+          <span class="secTitle">Size</span>
+          <span class="pill">size (array)</span>
+        </summary>
+        <div class="hint">Çoklu seçim yapabilirsin.</div>
+        <div class="multiWrap">
+          <select id="sizeSelect">
+            <option value="" disabled selected>Seç...</option>
+          </select>
+          <button class="btn" id="addSize">+ Add</button>
+        </div>
+        <div id="sizeChips" class="chips"></div>
+      </details>
+
+      <details>
+        <summary>
+          <span class="secTitle">Job Title</span>
+          <span class="pill">functional_level / seniority_level (array)</span>
+        </summary>
+        <div class="hint">Senin istediğin gibi dropdown’dan seçip ekliyoruz. (Exclude yok.)</div>
+
+        <div class="row">
+          <div>
+            <label>Functional Level</label>
+            <div class="multiWrap">
+              <select id="functionalSelect">
+                <option value="" disabled selected>Seç...</option>
+              </select>
+              <button class="btn" id="addFunctional">+ Add</button>
+            </div>
+            <div id="functionalChips" class="chips"></div>
+          </div>
+
+          <div>
+            <label>Seniority Level</label>
+            <div class="multiWrap">
+              <select id="senioritySelect">
+                <option value="" disabled selected>Seç...</option>
+              </select>
+              <button class="btn" id="addSeniority">+ Add</button>
+            </div>
+            <div id="seniorityChips" class="chips"></div>
+          </div>
+        </div>
+      </details>
+
+      <div class="footer">
+        Not: Apify’daki tüm seçenekleri %100 birebir yapmak istersen, options listelerini (functional/seniority/industry/location vb.) genişletiriz.
+        Bu dosyada dropdown’lar “çekirdek” seçeneklerle başlar ve kolayca genişletilir.
+      </div>
+    </div>
+
+    <div class="card">
+      <div style="display:flex; justify-content:space-between; align-items:center; gap:10px;">
+        <div class="secTitle">Generated JSON</div>
+        <div class="mini">Actor input</div>
+      </div>
+      <textarea id="jsonPreview" readonly></textarea>
+
+      <div id="statusBox" class="status" style="display:none;"></div>
+      <div class="kpi">
+        <div>Elapsed: <span id="elapsed">0</span> s</div>
+        <div>Status: <span id="runStatus">–</span></div>
+      </div>
+
+      <div class="footer">
+        n8n endpoint:
+        <div class="mini">
+          START: POST /webhook/start-lead-run → { status: "success" | "error", message?, count_written? }
+        </div>
+      </div>      
+    </div>
+  </div>
+</div>
+
+<script>
+  // =========================
+  // CONFIG: n8n endpoints
+  // =========================
+  const START_WEBHOOK_URL  = "https://figihi5034.app.n8n.cloud/webhook/start-lead-run";
+
+  // =========================
+  // OPTIONS (genişletilebilir)
+  // =========================
+  const SIZE_OPTIONS = ["1-10","11-20","21-50","51-100","101-200","201-500","501-1000","1001-2000"];
+
+  // Bu listeler Apify ile birebir genişletilebilir.
+  const FUNCTIONAL_OPTIONS = [
+    "c_suite","owner","partner","vp","director","head","manager","lead","individual_contributor"
+  ];
+
+  const SENIORITY_OPTIONS = [
+    "founder","co_founder","owner","partner","c_level","vp","director","head","manager","senior","mid","junior"
+  ];
+
+  // =========================
+  // STATE
+  // =========================
+  const state = {
+    company_industry: ["cosmetics"],
+    company_keywords: ["cosmetic, welness"],
+    contact_location: ["turkey"],
+    email_status: ["validated"],
+    fetch_count: 10,
+    functional_level: ["c_suite"],
+    seniority_level: ["founder"],
+    size: ["11-20"],
+    spreadsheet_id: "",
+    sheet_name: ""
+  };
+
+  // =========================
+  // HELPERS: chips
+  // =========================
+  function uniqPush(arr, val){
+    val = (val ?? "").toString().trim();
+    if(!val) return;
+    if(!arr.includes(val)) arr.push(val);
+  }
+  function removeVal(arr, val){
+    const i = arr.indexOf(val);
+    if(i >= 0) arr.splice(i,1);
+  }
+  function renderChips(containerId, arr){
+    const el = document.getElementById(containerId);
+    el.innerHTML = "";
+    arr.forEach(v => {
+      const chip = document.createElement("span");
+      chip.className = "chip";
+      chip.innerHTML = `<span>${escapeHtml(v)}</span>`;
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.textContent = "×";
+      btn.addEventListener("click", () => {
+        removeVal(arr, v);
+        updateAll();
+      });
+      chip.appendChild(btn);
+      el.appendChild(chip);
+    });
+  }
+  function escapeHtml(str){
+    return String(str)
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  // =========================
+  // JSON preview
+  // =========================
+  function buildPayload(){
+    const fetch = Number(document.getElementById("fetchCount").value || 0);
+    if(!Number.isFinite(fetch) || fetch < 1) throw new Error("fetch_count >= 1 olmalı");
+
+    const spreadsheetId = document.getElementById("spreadsheetId").value.trim();
+const sheetName = document.getElementById("sheetName").value.trim();
+
+if (!spreadsheetId) throw new Error("Spreadsheet ID zorunlu");
+if (!sheetName) throw new Error("Sheet Name zorunlu");
+
+return {
+  company_industry: state.company_industry,
+  company_keywords: state.company_keywords,
+  contact_location: state.contact_location,
+  email_status: ["validated"],
+  fetch_count: fetch,
+  functional_level: state.functional_level,
+  seniority_level: state.seniority_level,
+  size: state.size,
+  spreadsheet_id: spreadsheetId,
+  sheet_name: sheetName
+};
+
+  }
+
+  function updatePreview(){
+    const ta = document.getElementById("jsonPreview");
+    try{
+      const payload = buildPayload();
+      ta.value = JSON.stringify(payload, null, 2);
+    }catch(e){
+      ta.value = `Hata: ${e.message}`;
+    }
+  }
+
+  function updateAll(){
+    renderChips("industryChips", state.company_industry);
+    renderChips("keywordChips", state.company_keywords);
+    renderChips("locationChips", state.contact_location);
+    renderChips("sizeChips", state.size);
+    renderChips("functionalChips", state.functional_level);
+    renderChips("seniorityChips", state.seniority_level);
+    updatePreview();
+  }
+
+  // =========================
+  // Populate dropdowns
+  // =========================
+  function fillSelect(id, options){
+    const s = document.getElementById(id);
+    options.forEach(v => {
+      const opt = document.createElement("option");
+      opt.value = v;
+      opt.textContent = v;
+      s.appendChild(opt);
+    });
+  }
+
+  // =========================
+  // RUN status UI
+  // =========================
+
+  function setStatusBox(type, html){
+    const box = document.getElementById("statusBox");
+    box.style.display = "block";
+    box.className = "status " + (type === "ok" ? "ok" : type === "err" ? "err" : "run");
+    box.innerHTML = html;
+  }
+
+
+  let runStartTs = 0;
+let elapsedTimer = null;
+
+function startElapsed(){
+  stopElapsed();
+  elapsedTimer = setInterval(() => {
+    const s = Math.floor((Date.now() - runStartTs) / 1000);
+    const el = document.getElementById("elapsed");
+    if (el) el.textContent = String(s);
+  }, 250);
+}
+
+function stopElapsed(){
+  if (elapsedTimer) clearInterval(elapsedTimer);
+  elapsedTimer = null;
+}
+
+async function runWorkflow(){
+  let payload;
+
+  // 1) Payload oluştur
+  try {
+    payload = buildPayload();
+  } catch (e) {
+    setStatusBox("err", `<b>Hata</b>: ${escapeHtml(e.message)}`);
+    const rs = document.getElementById("runStatus");
+    if (rs) rs.textContent = "error";
+    return;
+  }
+
+  // 2) UI: running
+  const btn = document.getElementById("runBtn");
+  if (btn) btn.disabled = true;
+
+  runStartTs = Date.now();
+  startElapsed();
+
+  setStatusBox("run", `<b>RUNNING</b> – Akış çalışıyor, lütfen bekleyin...`);
+  const rs = document.getElementById("runStatus");
+  if (rs) rs.textContent = "running";
+
+  try {
+    // 3) n8n webhook çağır
+    const r = await fetch(START_WEBHOOK_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(payload)
+    });
+
+    const text = await r.text();
+
+    if (!r.ok) {
+      // n8n error body çoğu zaman JSON olabilir; yine de text göstermek faydalı
+      throw new Error(`Start endpoint: ${r.status} ${text}`);
+    }
+
+    // 4) Response parse
+    let data;
+    try {
+      data = JSON.parse(text);
+    } catch {
+      // JSON değilse success sayma; mesaj olarak göster
+      data = { status: "error", message: text };
+    }
+
+    // 5) UI: success / error
+    if (data && data.status === "success") {
+      const cw = data.count_written != null ? String(data.count_written) : "";
+      setStatusBox(
+        "ok",
+        `<b>SUCCESS</b> – Sheets'e yazım tamamlandı${cw ? ` (count: ${escapeHtml(cw)})` : ""}.`
+      );
+      if (rs) rs.textContent = "success";
+    } else {
+      const msg = (data && (data.message || data.error)) || "Bilinmeyen hata";
+      setStatusBox("err", `<b>Hata</b>: ${escapeHtml(msg)}`);
+      if (rs) rs.textContent = "error";
+    }
+
+  } catch (e) {
+    setStatusBox("err", `<b>Hata</b>: ${escapeHtml(e.message)}`);
+    if (rs) rs.textContent = "error";
+  } finally {
+    stopElapsed();
+    if (btn) btn.disabled = false;
+  }
+}
+
+  // =========================
+  // Wire events
+  // =========================
+  document.getElementById("fetchCount").addEventListener("input", updatePreview);
+
+  document.getElementById("addIndustry").addEventListener("click", () => {
+    uniqPush(state.company_industry, document.getElementById("industryInput").value);
+    document.getElementById("industryInput").value = "";
+    updateAll();
+  });
+  document.getElementById("industryInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); document.getElementById("addIndustry").click(); }
+  });
+
+  document.getElementById("addKeyword").addEventListener("click", () => {
+    uniqPush(state.company_keywords, document.getElementById("keywordInput").value);
+    document.getElementById("keywordInput").value = "";
+    updateAll();
+  });
+  document.getElementById("keywordInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); document.getElementById("addKeyword").click(); }
+  });
+
+  document.getElementById("addLocation").addEventListener("click", () => {
+    uniqPush(state.contact_location, document.getElementById("locationInput").value);
+    document.getElementById("locationInput").value = "";
+    updateAll();
+  });
+  document.getElementById("locationInput").addEventListener("keydown", (e) => {
+    if(e.key === "Enter"){ e.preventDefault(); document.getElementById("addLocation").click(); }
+  });
+
+  document.getElementById("addSize").addEventListener("click", () => {
+    const v = document.getElementById("sizeSelect").value;
+    uniqPush(state.size, v);
+    updateAll();
+  });
+  document.getElementById("addFunctional").addEventListener("click", () => {
+    const v = document.getElementById("functionalSelect").value;
+    uniqPush(state.functional_level, v);
+    updateAll();
+  });
+  document.getElementById("addSeniority").addEventListener("click", () => {
+    const v = document.getElementById("senioritySelect").value;
+    uniqPush(state.seniority_level, v);
+    updateAll();
+  });
+
+  document.getElementById("copyBtn").addEventListener("click", async () => {
+    try{
+      const payload = buildPayload();
+      await navigator.clipboard.writeText(JSON.stringify(payload, null, 2));
+      setStatusBox("ok", "<b>Kopyalandı</b> – JSON panoya alındı.");
+    }catch(e){
+      setStatusBox("err", `<b>Hata</b>: ${escapeHtml(e.message)}`);
+    }
+  });
+
+  document.getElementById("spreadsheetId").addEventListener("input", updatePreview);
+document.getElementById("sheetName").addEventListener("input", updatePreview);
+
+
+  document.getElementById("runBtn").addEventListener("click", runWorkflow);
+
+  // init
+  fillSelect("sizeSelect", SIZE_OPTIONS);
+  fillSelect("functionalSelect", FUNCTIONAL_OPTIONS);
+  fillSelect("senioritySelect", SENIORITY_OPTIONS);
+  document.getElementById("fetchCount").value = String(state.fetch_count);
+  updateAll();
+</script>
+</body>
+</html>
